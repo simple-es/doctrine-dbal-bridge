@@ -1,0 +1,37 @@
+{
+  "name": "simple-es/doctrine-dbal-bridge",
+  "description": "A bridge for using Doctrine DBAL as event store",
+  "type": "library",
+  "keywords": ["simple", "simplees", "simple-es", "event", "store", "event-store", "doctrine", "dbal"],
+  "homepage": "https://github.com/simple-es/doctrine-dbal-bridge",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Jasper N. Brouwer",
+      "email": "jasper@future500.nl"
+    }
+  ],
+
+  "require": {
+    "php": ">=5.4",
+    "simple-es/event-sourcing": "~1.0@dev",
+    "doctrine/dbal": "~2.3"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~4.3",
+    "squizlabs/php_codesniffer": "~2.1"
+  },
+
+  "autoload": {
+    "psr-4": {"SimpleES\\DoctrineDBALBridge\\": "src"}
+  },
+  "autoload-dev": {
+    "psr-4": {"SimpleES\\DoctrineDBALBridge\\Test\\": "tests"}
+  },
+
+  "extra": {
+    "branch-alias": {
+      "dev-master": "1.0.x-dev"
+    }
+  }
+}

@@ -98,7 +98,12 @@ final class DBALEventStoreTest extends \PHPUnit_Framework_TestCase
                 )
             );
 
-        $sql = 'INSERT INTO event_store (event_id, event_name, event_payload, aggregate_id, aggregate_version, took_place_at, metadata) VALUES (:event_id, :event_name, :event_payload, :aggregate_id, :aggregate_version, :took_place_at, :metadata)';
+        $sql = <<< EOQ
+INSERT INTO event_store
+(event_id, event_name, event_payload, aggregate_id, aggregate_version, took_place_at, metadata)
+VALUES
+(:event_id, :event_name, :event_payload, :aggregate_id, :aggregate_version, :took_place_at, :metadata)
+EOQ;
 
         $statement = $this->getMock('Doctrine\DBAL\Driver\Statement');
 
@@ -155,7 +160,12 @@ final class DBALEventStoreTest extends \PHPUnit_Framework_TestCase
     {
         $aggregateId = AggregateId::fromString('some-id');
 
-        $sql = 'SELECT event_id, event_name, event_payload, aggregate_version, took_place_at, metadata FROM event_store WHERE aggregate_id = :aggregate_id ORDER BY aggregate_version ASC';
+        $sql = <<< EOQ
+SELECT event_id, event_name, event_payload, aggregate_version, took_place_at, metadata
+FROM event_store
+WHERE aggregate_id = :aggregate_id
+ORDER BY aggregate_version ASC
+EOQ;
 
         list($rowOne, $rowTwo, $rowThree) = $this->createRows();
 
@@ -223,7 +233,12 @@ final class DBALEventStoreTest extends \PHPUnit_Framework_TestCase
     {
         $aggregateId = AggregateId::fromString('some-id');
 
-        $sql = 'SELECT event_id, event_name, event_payload, aggregate_version, took_place_at, metadata FROM event_store WHERE aggregate_id = :aggregate_id ORDER BY aggregate_version ASC';
+        $sql = <<< EOQ
+SELECT event_id, event_name, event_payload, aggregate_version, took_place_at, metadata
+FROM event_store
+WHERE aggregate_id = :aggregate_id
+ORDER BY aggregate_version ASC
+EOQ;
 
         $statement = $this->getMock('Doctrine\DBAL\Driver\Statement');
 

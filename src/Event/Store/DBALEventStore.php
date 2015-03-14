@@ -142,9 +142,14 @@ class DBALEventStore implements StoresEvents
     private function prepareInsertStatement()
     {
         if ($this->insertStatement === null) {
-            $this->insertStatement = $this->connection->prepare(
-                "INSERT INTO {$this->tableName} (event_id, event_name, event_payload, aggregate_id, aggregate_version, took_place_at, metadata) VALUES (:event_id, :event_name, :event_payload, :aggregate_id, :aggregate_version, :took_place_at, :metadata)"
-            );
+            $sql = <<< EOQ
+INSERT INTO {$this->tableName}
+(event_id, event_name, event_payload, aggregate_id, aggregate_version, took_place_at, metadata)
+VALUES
+(:event_id, :event_name, :event_payload, :aggregate_id, :aggregate_version, :took_place_at, :metadata)
+EOQ;
+
+            $this->insertStatement = $this->connection->prepare($sql);
         }
 
         return $this->insertStatement;
@@ -156,9 +161,14 @@ class DBALEventStore implements StoresEvents
     private function prepareSelectStatement()
     {
         if ($this->selectStatement === null) {
-            $this->selectStatement = $this->connection->prepare(
-                "SELECT event_id, event_name, event_payload, aggregate_version, took_place_at, metadata FROM {$this->tableName} WHERE aggregate_id = :aggregate_id ORDER BY aggregate_version ASC"
-            );
+            $sql = <<< EOQ
+SELECT event_id, event_name, event_payload, aggregate_version, took_place_at, metadata
+FROM {$this->tableName}
+WHERE aggregate_id = :aggregate_id
+ORDER BY aggregate_version ASC
+EOQ;
+
+            $this->selectStatement = $this->connection->prepare($sql);
         }
 
         return $this->selectStatement;

@@ -10,10 +10,10 @@ use Doctrine\DBAL\Types\Type;
 use PDO;
 use SimpleES\DoctrineDBALBridge\Event\Store\DBALEventStore;
 use SimpleES\DoctrineDBALBridge\Test\Auxiliary\AggregateId;
-use SimpleES\EventSourcing\Aggregate\Identifier\IdentifiesAggregate;
 use SimpleES\EventSourcing\Event\Stream\EventEnvelope;
 use SimpleES\EventSourcing\Event\Stream\EventId;
 use SimpleES\EventSourcing\Event\Stream\EventStream;
+use SimpleES\EventSourcing\Identifier\Identifies;
 use SimpleES\EventSourcing\Metadata\Metadata;
 use SimpleES\EventSourcing\Timestamp\Timestamp;
 
@@ -263,10 +263,10 @@ EOQ;
     }
 
     /**
-     * @param IdentifiesAggregate $aggregateId
+     * @param Identifies $aggregateId
      * @return EventStream
      */
-    private function createEventStream(IdentifiesAggregate $aggregateId)
+    private function createEventStream(Identifies $aggregateId)
     {
         $envelopeOne = new EventEnvelope(
             EventId::fromString('event-1'),

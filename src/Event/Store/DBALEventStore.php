@@ -11,13 +11,13 @@ use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\Types\Type;
 use PDO;
 use SimpleES\DoctrineDBALBridge\Exception\TableNameIsUnsafe;
-use SimpleES\EventSourcing\Aggregate\Identifier\IdentifiesAggregate;
 use SimpleES\EventSourcing\Event\Resolver\ResolvesEventNames;
 use SimpleES\EventSourcing\Event\Store\StoresEvents;
 use SimpleES\EventSourcing\Event\Stream\EventEnvelope;
 use SimpleES\EventSourcing\Event\Stream\EventId;
 use SimpleES\EventSourcing\Event\Stream\EventStream;
 use SimpleES\EventSourcing\Exception\AggregateIdNotFound;
+use SimpleES\EventSourcing\Identifier\Identifies;
 use SimpleES\EventSourcing\Serializer\SerializesData;
 use SimpleES\EventSourcing\Timestamp\Timestamp;
 
@@ -104,7 +104,7 @@ class DBALEventStore implements StoresEvents
     /**
      * {@inheritdoc}
      */
-    public function read(IdentifiesAggregate $aggregateId)
+    public function read(Identifies $aggregateId)
     {
         $statement = $this->prepareSelectStatement();
         $statement->bindValue('aggregate_id', (string) $aggregateId, Type::GUID);

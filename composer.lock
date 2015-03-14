@@ -488,12 +488,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/simple-es/event-sourcing.git",
-                "reference": "e4e56f4c2a5fb745229e3ad59aab015cddc64479"
+                "reference": "2147c115c6cfb94bf80e529859ad2279092e0b8c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/simple-es/event-sourcing/zipball/e4e56f4c2a5fb745229e3ad59aab015cddc64479",
-                "reference": "e4e56f4c2a5fb745229e3ad59aab015cddc64479",
+                "url": "https://api.github.com/repos/simple-es/event-sourcing/zipball/2147c115c6cfb94bf80e529859ad2279092e0b8c",
+                "reference": "2147c115c6cfb94bf80e529859ad2279092e0b8c",
                 "shasum": ""
             },
             "require": {
@@ -534,7 +534,7 @@
                 "simplees",
                 "sourcing"
             ],
-            "time": "2015-03-14 10:02:50"
+            "time": "2015-03-14 15:17:35"
         }
     ],
     "packages-dev": [

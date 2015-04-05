@@ -7,6 +7,8 @@
 namespace SimpleES\DoctrineDBALBridge\Test\Core;
 
 use Doctrine\DBAL\Types\Type;
+use Mockery;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PDO;
 use SimpleES\DoctrineDBALBridge\Event\Store\DBALEventStore;
 use SimpleES\DoctrineDBALBridge\Test\Auxiliary\AggregateId;
@@ -21,33 +23,34 @@ use SimpleES\EventSourcing\Timestamp\Timestamp;
  * @copyright Copyright (c) 2015 Future500 B.V.
  * @author    Jasper N. Brouwer <jasper@future500.nl>
  */
-final class DBALEventStoreTest extends \PHPUnit_Framework_TestCase
+final class DBALEventStoreTest extends MockeryTestCase
 {
+
     /**
      * @var DBALEventStore
      */
     private $eventStore;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Mockery\MockInterface
      */
     private $eventNameResolver;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Mockery\MockInterface
      */
     private $serializer;
 
     /**
-     * @var \PHPUnit_Framework_MockObject_MockObject
+     * @var \Mockery\MockInterface
      */
     private $connection;
 
     public function setUp()
     {
-        $this->eventNameResolver = $this->getMock('SimpleES\EventSourcing\Event\Resolver\ResolvesEventNames');
-        $this->serializer        = $this->getMock('SimpleES\EventSourcing\Serializer\SerializesData');
-        $this->connection        = $this->getMock('Doctrine\DBAL\Driver\Connection');
+        $this->eventNameResolver = Mockery::mock('SimpleES\EventSourcing\Event\NameResolver\ResolvesEventNames');
+        $this->serializer        = Mockery::mock('SimpleES\EventSourcing\Serializer\SerializesData');
+        $this->connection        = Mockery::mock('Doctrine\DBAL\Driver\Connection');
 
         $this->eventStore = new DBALEventStore(
             $this->eventNameResolver,
@@ -59,6 +62,8 @@ final class DBALEventStoreTest extends \PHPUnit_Framework_TestCase
 
     public function tearDown()
     {
+        $this->assertPostConditions();
+
         $this->eventStore        = null;
         $this->eventNameResolver = null;
         $this->serializer        = null;
@@ -87,16 +92,16 @@ final class DBALEventStoreTest extends \PHPUnit_Framework_TestCase
         $aggregateId = AggregateId::fromString('some-id');
 
         $this->serializer
-            ->expects($this->exactly(6))
-            ->method('serialize')
-            ->will(
-                $this->returnValueMap(
-                    [
-                        [$this->isInstanceOf('SimpleES\EventSourcing\Event\DomainEvent'), '{"foo": "bar"}'],
-                        [$this->isInstanceOf('SimpleES\EventSourcing\Metadata\Metadata'), '{"bar": "foo"}']
-                    ]
-                )
-            );
+            ->shouldReceive('serialize')
+            ->times(3)
+            ->with(Mockery::type('SimpleES\EventSourcing\Event\DomainEvent'))
+            ->andReturn('{"foo": "bar"}');
+
+        $this->serializer
+            ->shouldReceive('serialize')
+            ->times(3)
+            ->with(Mockery::type('SimpleES\EventSourcing\Metadata\Metadata'))
+            ->andReturn('{"bar": "foo"}');
 
         $sql = <<< EOQ
 INSERT INTO event_store
@@ -105,52 +110,35 @@ VALUES
 (:event_id, :event_name, :event_payload, :aggregate_id, :aggregate_version, :took_place_at, :metadata)
 EOQ;
 
-        $statement = $this->getMock('Doctrine\DBAL\Driver\Statement');
+        $stmt = Mockery::mock('Doctrine\DBAL\Driver\Statement');
 
-        $statement
-            ->expects($this->exactly(21))
-            ->method('bindValue')
-            ->will(
-                $this->returnValueMap(
-                    [
-                        ['event_id', 'event-1', Type::GUID],
-                        ['event_name', 'an_event_happened', Type::STRING],
-                        ['event_payload', '{"foo": "bar"}', Type::TEXT],
-                        ['aggregate_id', (string) $aggregateId, Type::GUID],
-                        ['aggregate_version', 0, Type::INTEGER],
-                        ['took_place_at', $this->isType('string'), Type::STRING],
-                        ['metadata', '{"bar": "foo"}', Type::TEXT],
-                        ['event_id', 'event-2', Type::GUID],
-                        ['event_name', 'another_event_happened', Type::STRING],
-                        ['event_payload', '{"foo": "bar"}', Type::TEXT],
-                        ['aggregate_id', (string) $aggregateId, Type::GUID],
-                        ['aggregate_version', 1, Type::INTEGER],
-                        ['took_place_at', $this->isType('string'), Type::STRING],
-                        ['metadata', '{"bar": "foo"}', Type::TEXT],
-                        ['event_id', 'event-3', Type::GUID],
-                        ['event_name', 'yet_another_event_happened', Type::STRING],
-                        ['event_payload', '{"foo": "bar"}', Type::TEXT],
-                        ['aggregate_id', (string) $aggregateId, Type::GUID],
-                        ['aggregate_version', 2, Type::INTEGER],
-                        ['took_place_at', $this->isType('string'), Type::STRING],
-                        ['metadata', '{"bar": "foo"}', Type::TEXT]
-                    ]
-                )
-            );
+        $stmt->shouldReceive('bindValue')->once()->with('event_id', 'event-1', Type::GUID);
+        $stmt->shouldReceive('bindValue')->once()->with('event_name', 'an_event_happened', Type::STRING);
+        $stmt->shouldReceive('bindValue')->once()->with('aggregate_version', 0, Type::INTEGER);
+        $stmt->shouldReceive('bindValue')->once()->with('event_id', 'event-2', Type::GUID);
+        $stmt->shouldReceive('bindValue')->once()->with('event_name', 'another_event_happened', Type::STRING);
+        $stmt->shouldReceive('bindValue')->once()->with('aggregate_version', 1, Type::INTEGER);
+        $stmt->shouldReceive('bindValue')->once()->with('event_id', 'event-3', Type::GUID);
+        $stmt->shouldReceive('bindValue')->once()->with('event_name', 'yet_another_event_happened', Type::STRING);
+        $stmt->shouldReceive('bindValue')->once()->with('aggregate_version', 2, Type::INTEGER);
+        $stmt->shouldReceive('bindValue')->times(3)->with('event_payload', '{"foo": "bar"}', Type::TEXT);
+        $stmt->shouldReceive('bindValue')->times(3)->with('aggregate_id', (string) $aggregateId, Type::GUID);
+        $stmt->shouldReceive('bindValue')->times(3)->with('took_place_at', Mockery::type('string'), Type::STRING);
+        $stmt->shouldReceive('bindValue')->times(3)->with('metadata', '{"bar": "foo"}', Type::TEXT);
 
-        $statement
-            ->expects($this->exactly(3))
-            ->method('execute');
+        $stmt->shouldReceive('execute')->times(3);
 
         $this->connection
-            ->expects($this->once())
-            ->method('prepare')
+            ->shouldReceive('prepare')
+            ->once()
             ->with($sql)
-            ->will($this->returnValue($statement));
+            ->andReturn($stmt);
 
         $eventStream = $this->createEventStream($aggregateId);
 
         $this->eventStore->commit($eventStream);
+
+        $stmt->shouldHaveReceived('execute');
     }
 
     /**
@@ -167,57 +155,49 @@ WHERE aggregate_id = :aggregate_id
 ORDER BY aggregate_version ASC
 EOQ;
 
-        list($rowOne, $rowTwo, $rowThree) = $this->createRows();
+        list($row1, $row2, $row3) = $this->createRows();
 
-        $statement = $this->getMock('Doctrine\DBAL\Driver\Statement');
+        $stmt = Mockery::mock('Doctrine\DBAL\Driver\Statement');
 
-        $statement
-            ->expects($this->once())
-            ->method('bindValue')
-            ->with('aggregate_id', (string) $aggregateId, Type::GUID);
-
-        $statement
-            ->expects($this->exactly(4))
-            ->method('fetch')
-            ->with(PDO::FETCH_ASSOC)
-            ->will($this->onConsecutiveCalls($rowOne, $rowTwo, $rowThree, false));
+        $stmt->shouldReceive('bindValue')->once()->with('aggregate_id', (string) $aggregateId, Type::GUID);
+        $stmt->shouldReceive('execute')->once();
+        $stmt->shouldReceive('fetch')->times(4)->with(PDO::FETCH_ASSOC)->andReturn($row1, $row2, $row3, false);
 
         $this->connection
-            ->expects($this->once())
-            ->method('prepare')
+            ->shouldReceive('prepare')
+            ->once()
             ->with($sql)
-            ->will($this->returnValue($statement));
+            ->andReturn($stmt);
 
         $this->eventNameResolver
-            ->expects($this->exactly(3))
-            ->method('resolveEventClass')
-            ->willReturnMap(
-                [
-                    ['an_event_happened', 'SimpleES\DoctrineDBALBridge\Test\Auxiliary\AnEventHappened'],
-                    ['another_event_happened', 'SimpleES\DoctrineDBALBridge\Test\Auxiliary\AnotherEventHappened'],
-                    ['yet_another_event_happened', 'SimpleES\DoctrineDBALBridge\Test\Auxiliary\YetAnotherEventHappened']
-                ]
-            );
+            ->shouldReceive('resolveEventClass')
+            ->once()
+            ->with('an_event_happened')
+            ->andReturn('SimpleES\DoctrineDBALBridge\Test\Auxiliary\AnEventHappened');
 
-        $eventOne   = $this->getMock('SimpleES\EventSourcing\Event\DomainEvent');
-        $eventTwo   = $this->getMock('SimpleES\EventSourcing\Event\DomainEvent');
-        $eventThree = $this->getMock('SimpleES\EventSourcing\Event\DomainEvent');
+        $this->eventNameResolver
+            ->shouldReceive('resolveEventClass')
+            ->once()
+            ->with('another_event_happened')
+            ->andReturn('SimpleES\DoctrineDBALBridge\Test\Auxiliary\AnotherEventHappened');
+
+        $this->eventNameResolver
+            ->shouldReceive('resolveEventClass')
+            ->once()
+            ->with('yet_another_event_happened')
+            ->andReturn('SimpleES\DoctrineDBALBridge\Test\Auxiliary\YetAnotherEventHappened');
 
         $this->serializer
-            ->expects($this->exactly(6))
-            ->method('deserialize')
-            ->willReturnMap(
-                [
-                    ['{"foo": "bar"}', 'SimpleES\DoctrineDBALBridge\Test\Auxiliary\AnEventHappened', $eventOne],
-                    ['{"foo": "bar"}', 'SimpleES\DoctrineDBALBridge\Test\Auxiliary\AnotherEventHappened', $eventTwo],
-                    [
-                        '{"foo": "bar"}',
-                        'SimpleES\DoctrineDBALBridge\Test\Auxiliary\YetAnotherEventHappened',
-                        $eventThree
-                    ],
-                    ['{"bar": "foo"}', 'SimpleES\EventSourcing\Metadata\Metadata', new Metadata([])]
-                ]
-            );
+            ->shouldReceive('deserialize')
+            ->times(3)
+            ->with('{"foo": "bar"}', Mockery::type('string'))
+            ->andReturn(Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'));
+
+        $this->serializer
+            ->shouldReceive('deserialize')
+            ->times(3)
+            ->with('{"bar": "foo"}', 'SimpleES\EventSourcing\Metadata\Metadata')
+            ->andReturn(new Metadata([]));
 
         $eventStream = $this->eventStore->read($aggregateId);
 
@@ -240,58 +220,52 @@ WHERE aggregate_id = :aggregate_id
 ORDER BY aggregate_version ASC
 EOQ;
 
-        $statement = $this->getMock('Doctrine\DBAL\Driver\Statement');
+        $stmt = Mockery::mock('Doctrine\DBAL\Driver\Statement');
 
-        $statement
-            ->expects($this->once())
-            ->method('bindValue')
-            ->with('aggregate_id', (string) $aggregateId, Type::GUID);
-
-        $statement
-            ->expects($this->once())
-            ->method('fetch')
-            ->with(PDO::FETCH_ASSOC)
-            ->will($this->returnValue(false));
+        $stmt->shouldReceive('bindValue')->once()->with('aggregate_id', (string) $aggregateId, Type::GUID);
+        $stmt->shouldReceive('execute')->once();
+        $stmt->shouldReceive('fetch')->once()->with(PDO::FETCH_ASSOC)->andReturn(false);
 
         $this->connection
-            ->expects($this->once())
-            ->method('prepare')
+            ->shouldReceive('prepare')
+            ->once()
             ->with($sql)
-            ->will($this->returnValue($statement));
+            ->andReturn($stmt);
 
         $this->eventStore->read($aggregateId);
     }
 
     /**
      * @param Identifies $aggregateId
+     *
      * @return EventStream
      */
     private function createEventStream(Identifies $aggregateId)
     {
-        $envelopeOne = new EventEnvelope(
+        $envelope1 = new EventEnvelope(
             EventId::fromString('event-1'),
             'an_event_happened',
-            $this->getMock('SimpleES\EventSourcing\Event\DomainEvent'),
+            Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'),
             $aggregateId,
             0,
             Timestamp::now(),
             new Metadata([])
         );
 
-        $envelopeTwo = new EventEnvelope(
+        $envelope2 = new EventEnvelope(
             EventId::fromString('event-2'),
             'another_event_happened',
-            $this->getMock('SimpleES\EventSourcing\Event\DomainEvent'),
+            Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'),
             $aggregateId,
             1,
             Timestamp::now(),
             new Metadata([])
         );
 
-        $envelopeThree = new EventEnvelope(
+        $envelope3 = new EventEnvelope(
             EventId::fromString('event-3'),
             'yet_another_event_happened',
-            $this->getMock('SimpleES\EventSourcing\Event\DomainEvent'),
+            Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'),
             $aggregateId,
             2,
             Timestamp::now(),
@@ -300,7 +274,7 @@ EOQ;
 
         $eventStream = new EventStream(
             $aggregateId,
-            [$envelopeOne, $envelopeTwo, $envelopeThree]
+            [$envelope1, $envelope2, $envelope3]
         );
 
         return $eventStream;
@@ -311,7 +285,7 @@ EOQ;
      */
     private function createRows()
     {
-        $rowOne   = [
+        $row1 = [
             'event_id'          => 'event-1',
             'event_name'        => 'an_event_happened',
             'event_payload'     => '{"foo": "bar"}',
@@ -319,7 +293,7 @@ EOQ;
             'took_place_at'     => '2015-03-14T10:57:36.785643+0000',
             'metadata'          => '{"bar": "foo"}'
         ];
-        $rowTwo   = [
+        $row2 = [
             'event_id'          => 'event-2',
             'event_name'        => 'another_event_happened',
             'event_payload'     => '{"foo": "bar"}',
@@ -327,7 +301,7 @@ EOQ;
             'took_place_at'     => '2015-03-14T10:57:37.242328+0000',
             'metadata'          => '{"bar": "foo"}'
         ];
-        $rowThree = [
+        $row3 = [
             'event_id'          => 'event-3',
             'event_name'        => 'yet_another_event_happened',
             'event_payload'     => '{"foo": "bar"}',
@@ -336,6 +310,6 @@ EOQ;
             'metadata'          => '{"bar": "foo"}'
         ];
 
-        return [$rowOne, $rowTwo, $rowThree];
+        return [$row1, $row2, $row3];
     }
 }

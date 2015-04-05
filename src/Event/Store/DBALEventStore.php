@@ -11,7 +11,7 @@ use Doctrine\DBAL\Driver\Statement;
 use Doctrine\DBAL\Types\Type;
 use PDO;
 use SimpleES\DoctrineDBALBridge\Exception\TableNameIsUnsafe;
-use SimpleES\EventSourcing\Event\Resolver\ResolvesEventNames;
+use SimpleES\EventSourcing\Event\NameResolver\ResolvesEventNames;
 use SimpleES\EventSourcing\Event\Store\StoresEvents;
 use SimpleES\EventSourcing\Event\Stream\EventEnvelope;
 use SimpleES\EventSourcing\Event\Stream\EventId;
@@ -27,6 +27,7 @@ use SimpleES\EventSourcing\Timestamp\Timestamp;
  */
 class DBALEventStore implements StoresEvents
 {
+
     /**
      * @var ResolvesEventNames
      */
@@ -108,6 +109,7 @@ class DBALEventStore implements StoresEvents
     {
         $statement = $this->prepareSelectStatement();
         $statement->bindValue('aggregate_id', (string) $aggregateId, Type::GUID);
+        $statement->execute();
 
         $envelopes = [];
 

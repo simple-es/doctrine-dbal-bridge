@@ -3,7 +3,7 @@
   "description": "A bridge for using Doctrine DBAL as event store",
   "type": "library",
   "keywords": ["simple", "simplees", "simple-es", "event", "store", "event-store", "doctrine", "dbal"],
-  "homepage": "https://github.com/simple-es/doctrine-dbal-bridge",
+  "homepage": "https://simple-es.github.io",
   "license": "MIT",
   "authors": [
     {

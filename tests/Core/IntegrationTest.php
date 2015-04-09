@@ -120,8 +120,6 @@ EOQ;
 
     public function tearDown()
     {
-        $this->assertPostConditions();
-
         $this->connection->close();
 
         $this->eventStore        = null;

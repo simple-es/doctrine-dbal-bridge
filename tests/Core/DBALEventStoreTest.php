@@ -62,8 +62,6 @@ final class DBALEventStoreTest extends MockeryTestCase
 
     public function tearDown()
     {
-        $this->assertPostConditions();
-
         $this->eventStore        = null;
         $this->eventNameResolver = null;
         $this->serializer        = null;

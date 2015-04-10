@@ -120,7 +120,7 @@ class DBALEventStore implements StoresEvents
 
             $metadata = $this->serializer->deserialize($row['metadata'], 'SimpleES\EventSourcing\Metadata\Metadata');
 
-            $envelopes[] = new EventEnvelope(
+            $envelopes[] = EventEnvelope::fromStore(
                 EventId::fromString($row['event_id']),
                 $eventName,
                 $event,

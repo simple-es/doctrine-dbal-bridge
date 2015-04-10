@@ -12,7 +12,6 @@ use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PDO;
 use SimpleES\DoctrineDBALBridge\Event\Store\DBALEventStore;
 use SimpleES\DoctrineDBALBridge\Test\Auxiliary\AggregateId;
-use SimpleES\EventSourcing\Event\Stream\EventEnvelope;
 use SimpleES\EventSourcing\Event\Stream\EventId;
 use SimpleES\EventSourcing\Event\Stream\EventStream;
 use SimpleES\EventSourcing\Identifier\Identifies;
@@ -240,35 +239,32 @@ EOQ;
      */
     private function createEventStream(Identifies $aggregateId)
     {
-        $envelope1 = new EventEnvelope(
-            EventId::fromString('event-1'),
-            'an_event_happened',
-            Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'),
-            $aggregateId,
-            0,
-            Timestamp::now(),
-            new Metadata([])
-        );
+        $envelope1 = Mockery::mock('SimpleES\EventSourcing\Event\Stream\EnvelopsEvent');
+        $envelope1->shouldReceive('eventId')->andReturn(EventId::fromString('event-1'));
+        $envelope1->shouldReceive('eventName')->andReturn('an_event_happened');
+        $envelope1->shouldReceive('event')->andReturn(Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'));
+        $envelope1->shouldReceive('aggregateId')->andReturn($aggregateId);
+        $envelope1->shouldReceive('aggregateVersion')->andReturn(0);
+        $envelope1->shouldReceive('tookPlaceAt')->andReturn(Timestamp::now());
+        $envelope1->shouldReceive('metadata')->andReturn(new Metadata([]));
 
-        $envelope2 = new EventEnvelope(
-            EventId::fromString('event-2'),
-            'another_event_happened',
-            Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'),
-            $aggregateId,
-            1,
-            Timestamp::now(),
-            new Metadata([])
-        );
+        $envelope2 = Mockery::mock('SimpleES\EventSourcing\Event\Stream\EnvelopsEvent');
+        $envelope2->shouldReceive('eventId')->andReturn(EventId::fromString('event-2'));
+        $envelope2->shouldReceive('eventName')->andReturn('another_event_happened');
+        $envelope2->shouldReceive('event')->andReturn(Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'));
+        $envelope2->shouldReceive('aggregateId')->andReturn($aggregateId);
+        $envelope2->shouldReceive('aggregateVersion')->andReturn(1);
+        $envelope2->shouldReceive('tookPlaceAt')->andReturn(Timestamp::now());
+        $envelope2->shouldReceive('metadata')->andReturn(new Metadata([]));
 
-        $envelope3 = new EventEnvelope(
-            EventId::fromString('event-3'),
-            'yet_another_event_happened',
-            Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'),
-            $aggregateId,
-            2,
-            Timestamp::now(),
-            new Metadata([])
-        );
+        $envelope3 = Mockery::mock('SimpleES\EventSourcing\Event\Stream\EnvelopsEvent');
+        $envelope3->shouldReceive('eventId')->andReturn(EventId::fromString('event-3'));
+        $envelope3->shouldReceive('eventName')->andReturn('yet_another_event_happened');
+        $envelope3->shouldReceive('event')->andReturn(Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'));
+        $envelope3->shouldReceive('aggregateId')->andReturn($aggregateId);
+        $envelope3->shouldReceive('aggregateVersion')->andReturn(2);
+        $envelope3->shouldReceive('tookPlaceAt')->andReturn(Timestamp::now());
+        $envelope3->shouldReceive('metadata')->andReturn(new Metadata([]));
 
         $eventStream = new EventStream(
             $aggregateId,

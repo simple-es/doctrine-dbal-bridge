@@ -18,7 +18,6 @@ use SimpleES\EventSourcing\Event\Stream\EventId;
 use SimpleES\EventSourcing\Event\Stream\EventStream;
 use SimpleES\EventSourcing\Identifier\Identifies;
 use SimpleES\EventSourcing\Metadata\Metadata;
-use SimpleES\EventSourcing\Timestamp\Timestamp;
 
 /**
  * @copyright Copyright (c) 2015 Future500 B.V.
@@ -151,34 +150,28 @@ EOQ;
      */
     private function createEventStream(Identifies $aggregateId)
     {
-        $envelope1 = new EventEnvelope(
-            EventId::fromString('d3ed9cf4-5a94-4da0-8b8b-d8fab0dea9ff'),
+        $envelope1 = EventEnvelope::envelop(
+            EventId::fromString('246cc06b-c60f-40da-ab58-ef7b5502eb74'),
             'an_event_happened',
             Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'),
             $aggregateId,
-            0,
-            Timestamp::now(),
-            new Metadata([])
+            0
         );
 
-        $envelope2 = new EventEnvelope(
-            EventId::fromString('4e560877-bf99-43bd-aa65-043eb8fb4ccd'),
+        $envelope2 = EventEnvelope::envelop(
+            EventId::fromString('4b4806a5-a99f-425f-b83e-ed49621d29d3'),
             'another_event_happened',
             Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'),
             $aggregateId,
-            1,
-            Timestamp::now(),
-            new Metadata([])
+            1
         );
 
-        $envelope3 = new EventEnvelope(
-            EventId::fromString('1eeb1a52-d54a-4ac1-9a3d-4a7c63952a09'),
+        $envelope3 = EventEnvelope::envelop(
+            EventId::fromString('20454ed7-e524-469a-b7a9-5c42c94bdfdd'),
             'yet_another_event_happened',
             Mockery::mock('SimpleES\EventSourcing\Event\DomainEvent'),
             $aggregateId,
-            2,
-            Timestamp::now(),
-            new Metadata([])
+            2
         );
 
         $eventStream = new EventStream(
